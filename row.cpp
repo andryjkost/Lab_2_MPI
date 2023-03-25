@@ -7,8 +7,7 @@
 int main(int argc, char **argv) {
     int rank, size;
 
-    double start_t, end_t;
-    struct timeval t;
+    double starttime, endtime;
 
     string output_file = "data/row_time.csv";
 
@@ -32,9 +31,7 @@ int main(int argc, char **argv) {
         print_matrix(matrix_b, local_n);
     }
 
-    gettimeofday(&t, NULL);
-    start_t = t.tv_sec + t.tv_usec/1000000.0;
-
+    starttime = MPI_Wtime();
     MPI_Scatter(matrix_a.arr, SIZE_MATRIX * local_n, MPI_INT,
                 matrix_a.arr[rank * local_n], SIZE_MATRIX * local_n, MPI_INT,
                 MASTER_PROC_RANK, MPI_COMM_WORLD);
@@ -56,9 +53,7 @@ int main(int argc, char **argv) {
     MPI_Gather(result_matrix.arr, SIZE_MATRIX * local_n, MPI_INT, result_matrix.arr,
                SIZE_MATRIX * local_n, MPI_INT, MASTER_PROC_RANK, MPI_COMM_WORLD);
 
-    gettimeofday(&t, NULL);
-    end_t = t.tv_sec + t.tv_usec/1000000.0;
-
+    endtime   = MPI_Wtime();
     if (rank == MASTER_PROC_RANK) {
         cout << "Результат:\n";
         print_matrix(result_matrix, -1);
@@ -66,10 +61,10 @@ int main(int argc, char **argv) {
 
     MPI_Finalize();
 
-    cout << "Время: " << to_string(end_t - start_t) << '\n';
+    cout << "Время: " << to_string(endtime-starttime) << '\n';
     string output_text = "Размер матрицы: " + to_string(SIZE_MATRIX) +
                          " Кол-во процессов: " + to_string(size) +
-                         " Время: " + to_string(end_t - start_t)
+                         " Время: " + to_string(endtime-starttime)
                          + "\n";
     write_to_file(output_file, output_text);
     return 0;
